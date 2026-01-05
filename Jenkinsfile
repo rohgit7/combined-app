@@ -11,25 +11,25 @@ pipeline {
 
         stage('Build Image') {
             steps {
-                bat 'docker build -t backends .'
+                bat 'docker build -t backend-image .'
             }
         }
 
         stage('Network') {
             steps {
-                bat 'docker network create auths-network || exit 0'
+                bat 'docker network create auths-networks || exit 0'
             }
         }
 
         stage('Mongo') {
             steps {
-                bat 'docker rm -f mongo || exit 0 && docker run -d --name mongo --network auths-network -v mongo_data:/data/db -p 27017:27017 mongo'
+                bat 'docker run -d --name mongo_container --network auths-networks -v mongo_data:/data/db -p 27017:27017 mongo'
             }
         }
 
         stage('Backend') {
             steps {
-                bat 'docker rm -f backend || exit 0 && docker run -d --name backend --network auths-network -e MONGO_URL=mongodb://mongo:27017/auth_demo -p 3000:3000 backends'
+                bat 'docker run -d --name backend --network auths-networks -e MONGO_URL=mongodb://mongo_container:27017/auth_demo -p 3000:3000 backend-image'
             }
         }
     }
